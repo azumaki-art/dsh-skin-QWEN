@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Machine-local helper scripts (absolute paths; not part of the distribution)
+local/
+
+# Source maps are not committed (lib/client.js + lib/index.js are the distribution)
+lib/*.js.map
+
+# Misc
+*.tmp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,28 @@
+{
+  "id": "qwen-blossom",
+  "name": "千问花语",
+  "nameEn": "QWEN Blossom",
+  "author": "shxvx",
+  "tagline": "梦蓝宣纸 · 月夜亭台 — 双主题古风皮肤",
+  "description": "双主题古风皮肤：Light 以《Dreamy Blue QWEN Blossom Portrait》为宣纸蓝底，Dark 以《Moonlit Pavilion Dreamscape》为靛夜底；侧栏/会话/composer/弹层加宣纸与夜帷半透明衬底保证按钮文字清晰，composer、对话框与面板饰回纹角花与靛金双线边框。",
+  "tags": [
+    "古风",
+    "双主题",
+    "蓝",
+    "鎏金",
+    "宣纸"
+  ],
+  "accent": "#4c6fd6",
+  "bodyAttr": "data-dsh-qwen-blossom",
+  "dshCompatibility": "0.1.5rc1",
+  "package": "@dsh-external/dsh-client-ui-skin-qwen-blossom",
+  "wiring": {
+    "id": "ui-skin-qwen-blossom",
+    "bundleWired": false
+  },
+  "preview": {
+    "light": "preview/preview-light.png",
+    "dark": "preview/preview-dark.png"
+  },
+  "order": 30
+}

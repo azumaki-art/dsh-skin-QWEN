@@ -1,0 +1,523 @@
+/* QWEN Blossom skin styles — M2: full presentation layer.
+   Light = Dreamy Blue QWEN Blossom Portrait (淡蓝宣纸、花枝、汉服人物)
+   Dark  = Moonlit Pavilion Dreamscape (月夜亭台、靛蓝金灯)
+   Theme switch follows the DSH native dark attribute on <body>; the two
+   background layers cross-fade. All decoration is scoped to the skin's
+   bodyAttr. Red lines honored: no #root ID selector (use [id='root']),
+   skin floating layers stay below z-index 1000, no body-level :has,
+   no 2^31 magic numbers. */
+
+/* ============================================================
+   1. Theme-scoped design tokens
+   ============================================================ */
+
+/* Light theme: 宣纸蓝 */
+body[data-dsh-qwen-blossom]:not([data-ds-dark-theme]) {
+  --qwen-text: #23306b;
+  --qwen-text-soft: #46538f;
+  --qwen-text-faint: #64709b;
+  --qwen-canvas: #dde5f4;
+  --qwen-surface: rgba(248, 250, 255, 0.78);
+  --qwen-surface-strong: rgba(250, 251, 255, 0.92);
+  --qwen-surface-overlay: rgba(251, 252, 255, 0.96);
+  --qwen-sidebar-fill: rgba(243, 246, 253, 0.88);
+  --qwen-line-outer: #2b3a8f;
+  --qwen-line-inner: #c9a86a;
+  --qwen-line-inner-soft: rgba(201, 168, 106, 0.55);
+  --qwen-line-outer-soft: rgba(43, 58, 143, 0.4);
+  --qwen-link: #2b3a8f;
+  --qwen-shadow: 0 14px 40px rgba(35, 48, 107, 0.16), 0 2px 8px rgba(35, 48, 107, 0.1);
+  --qwen-composer-surface: linear-gradient(180deg, rgba(255, 254, 250, 0.86), rgba(244, 247, 253, 0.74));
+
+  /* 回纹角花（内靛外金双线 + 中心菱花；对角对称，TL/BR 共用 A，TR/BL 共用镜像 B） */
+  --qwen-corner-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Cpath d='M1.5 24.5V6.5Q1.5 1.5 6.5 1.5H24.5' fill='none' stroke='%232b3a8f' stroke-width='2'/%3E%3Cpath d='M5.5 22.5V10.5Q5.5 5.5 10.5 5.5H22.5' fill='none' stroke='%23c9a86a' stroke-width='1.2'/%3E%3Cpath d='M13 9.8L16.2 13L13 16.2L9.8 13Z' fill='none' stroke='%23c9a86a' stroke-width='1.1'/%3E%3C/svg%3E");
+  --qwen-corner-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Cg transform='translate(26,0) scale(-1,1)'%3E%3Cpath d='M1.5 24.5V6.5Q1.5 1.5 6.5 1.5H24.5' fill='none' stroke='%232b3a8f' stroke-width='2'/%3E%3Cpath d='M5.5 22.5V10.5Q5.5 5.5 10.5 5.5H22.5' fill='none' stroke='%23c9a86a' stroke-width='1.2'/%3E%3Cpath d='M13 9.8L16.2 13L13 16.2L9.8 13Z' fill='none' stroke='%23c9a86a' stroke-width='1.1'/%3E%3C/g%3E%3C/svg%3E");
+  /* 回纹分隔带（侧栏顶 / 会话区顶，repeat-x 无缝平铺） */
+  --qwen-band-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='7' viewBox='0 0 24 7'%3E%3Cpath d='M0 6.5h24M0 0.5h24' stroke='%232b3a8f' stroke-width='1'/%3E%3Cpath d='M0 5V2h4v3h4V2h4v3h4V2h4v3h4' fill='none' stroke='%23c9a86a' stroke-width='1'/%3E%3C/svg%3E");
+
+  /* DSH 设计令牌覆盖（!important：对抗宿主内联 token 压制，rc 适配红线） */
+  --dsw-alias-bg-base: transparent !important;
+  --dsw-alias-bg-layer-1: rgba(248, 250, 255, 0.72) !important;
+  --dsw-alias-bg-layer-2: rgba(240, 244, 252, 0.82) !important;
+  --dsw-alias-bg-layer-3: rgba(232, 238, 249, 0.88) !important;
+  --dsw-alias-bg-module-platform: rgba(240, 244, 252, 0.78) !important;
+  --dsw-alias-bg-overlay: rgba(251, 252, 255, 0.96) !important;
+  --dsw-alias-border-l1: rgba(43, 58, 143, 0.14) !important;
+  --dsw-alias-border-l2-darkmode-thin: rgba(43, 58, 143, 0.2) !important;
+  --dsw-alias-border-l2: rgba(43, 58, 143, 0.26) !important;
+  --dsw-alias-border-l3: rgba(201, 168, 106, 0.55) !important;
+  --dsw-alias-border-l4: rgba(43, 58, 143, 0.4) !important;
+  --dsw-alias-brand-primary: #2b3a8f !important;
+  --dsw-alias-brand-primary-invert: #f8faff !important;
+  --dsw-alias-brand-text: #23306b !important;
+  --dsw-alias-button-primary-fill: #2b3a8f !important;
+  --dsw-alias-button-primary-hover: #23306b !important;
+  --dsw-alias-button-elevated-fill: rgba(255, 254, 250, 0.9) !important;
+  --dsw-alias-button-floating-fill: rgba(255, 254, 250, 0.94) !important;
+  --dsw-alias-button-floating-hover: #eae7da !important;
+  --dsw-alias-button-info-fill: #3a4da8 !important;
+  --dsw-alias-button-info-hover: #2b3a8f !important;
+  --dsw-alias-button-tool-bar-fill: rgba(255, 254, 250, 0.66) !important;
+  --dsw-alias-button-tool-bar-hover: rgba(215, 222, 240, 0.9) !important;
+  --dsw-alias-interactive-bg-hover: rgba(82, 106, 183, 0.12) !important;
+  --dsw-alias-interactive-bg-active: rgba(201, 168, 106, 0.26) !important;
+  --dsw-alias-interactive-bg-hover-solid: #e3e9f7 !important;
+  --dsw-alias-label-primary: #23306b !important;
+  --dsw-alias-label-primary-bluish: #2a3a80 !important;
+  --dsw-alias-label-secondary: #46538f !important;
+  --dsw-alias-label-tertiary: #5d6aa5 !important;
+  --dsw-alias-label-caption: #64709b !important;
+  --dsw-alias-markdown-code-block: rgba(249, 250, 253, 0.95) !important;
+  --dsw-alias-state-business-primary: #3a4da8 !important;
+  --dsw-alias-state-business-tertiary: #e2e8f6 !important;
+  --dsw-alias-state-warn-tertiary: rgba(201, 168, 106, 0.2) !important;
+  --dsw-alias-state-warn-label: #7a5c1e !important;
+  --dsw-shadow-lv2: var(--qwen-shadow) !important;
+  --dsw-specific-bubble: rgba(232, 238, 249, 0.92) !important;
+  --dsw-specific-bubble-highlight: rgba(222, 230, 246, 0.96) !important;
+  --dsw-specific-input-major: rgba(255, 254, 250, 0.85) !important;
+  --dsw-specific-menu: rgba(251, 252, 255, 0.97) !important;
+  --dsw-specific-selector: rgba(232, 238, 249, 0.92) !important;
+  --dsw-specific-sidebar-fill: rgba(243, 246, 253, 0.72) !important;
+  --dsw-input-solid: #fdfdff !important;
+}
+
+/* Dark theme: 靛夜金 */
+body[data-dsh-qwen-blossom][data-ds-dark-theme] {
+  --qwen-text: #eef2ff;
+  --qwen-text-soft: #c3cdf0;
+  --qwen-text-faint: #93a1cf;
+  --qwen-canvas: #060a18;
+  --qwen-surface: rgba(10, 14, 34, 0.82);
+  --qwen-surface-strong: rgba(11, 16, 38, 0.92);
+  --qwen-surface-overlay: rgba(9, 13, 32, 0.96);
+  --qwen-sidebar-fill: rgba(6, 10, 26, 0.88);
+  --qwen-line-outer: #8fa3ff;
+  --qwen-line-inner: #d8b878;
+  --qwen-line-inner-soft: rgba(216, 184, 120, 0.5);
+  --qwen-line-outer-soft: rgba(143, 163, 255, 0.38);
+  --qwen-link: #a9baff;
+  --qwen-shadow: 0 16px 44px rgba(0, 0, 0, 0.4), 0 2px 10px rgba(0, 0, 0, 0.3);
+  --qwen-composer-surface: linear-gradient(180deg, rgba(19, 28, 62, 0.88), rgba(9, 14, 36, 0.84));
+
+  --qwen-corner-a: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Cpath d='M1.5 24.5V6.5Q1.5 1.5 6.5 1.5H24.5' fill='none' stroke='%238fa3ff' stroke-width='2'/%3E%3Cpath d='M5.5 22.5V10.5Q5.5 5.5 10.5 5.5H22.5' fill='none' stroke='%23d8b878' stroke-width='1.2'/%3E%3Cpath d='M13 9.8L16.2 13L13 16.2L9.8 13Z' fill='none' stroke='%23d8b878' stroke-width='1.1'/%3E%3C/svg%3E");
+  --qwen-corner-b: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 26 26'%3E%3Cg transform='translate(26,0) scale(-1,1)'%3E%3Cpath d='M1.5 24.5V6.5Q1.5 1.5 6.5 1.5H24.5' fill='none' stroke='%238fa3ff' stroke-width='2'/%3E%3Cpath d='M5.5 22.5V10.5Q5.5 5.5 10.5 5.5H22.5' fill='none' stroke='%23d8b878' stroke-width='1.2'/%3E%3Cpath d='M13 9.8L16.2 13L13 16.2L9.8 13Z' fill='none' stroke='%23d8b878' stroke-width='1.1'/%3E%3C/g%3E%3C/svg%3E");
+  --qwen-band-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='7' viewBox='0 0 24 7'%3E%3Cpath d='M0 6.5h24M0 0.5h24' stroke='%238fa3ff' stroke-width='1'/%3E%3Cpath d='M0 5V2h4v3h4V2h4v3h4V2h4v3h4' fill='none' stroke='%23d8b878' stroke-width='1'/%3E%3C/svg%3E");
+
+  --dsw-alias-bg-base: transparent !important;
+  --dsw-alias-bg-layer-1: rgba(14, 20, 44, 0.8) !important;
+  --dsw-alias-bg-layer-2: rgba(18, 26, 56, 0.86) !important;
+  --dsw-alias-bg-layer-3: rgba(24, 34, 70, 0.9) !important;
+  --dsw-alias-bg-module-platform: rgba(18, 26, 56, 0.86) !important;
+  --dsw-alias-bg-overlay: rgba(9, 13, 32, 0.96) !important;
+  --dsw-alias-border-l1: rgba(143, 163, 255, 0.16) !important;
+  --dsw-alias-border-l2-darkmode-thin: rgba(143, 163, 255, 0.24) !important;
+  --dsw-alias-border-l2: rgba(143, 163, 255, 0.3) !important;
+  --dsw-alias-border-l3: rgba(216, 184, 120, 0.55) !important;
+  --dsw-alias-border-l4: rgba(143, 163, 255, 0.42) !important;
+  --dsw-alias-brand-primary: #8fa3ff !important;
+  --dsw-alias-brand-primary-invert: #0a0e22 !important;
+  --dsw-alias-brand-text: #eef2ff !important;
+  --dsw-alias-button-primary-fill: #5a6fc4 !important;
+  --dsw-alias-button-primary-hover: #6c81d4 !important;
+  --dsw-alias-button-elevated-fill: rgba(26, 36, 74, 0.92) !important;
+  --dsw-alias-button-floating-fill: rgba(28, 39, 80, 0.95) !important;
+  --dsw-alias-button-floating-hover: #33457f !important;
+  --dsw-alias-button-info-fill: #7d92e8 !important;
+  --dsw-alias-button-info-hover: #93a5ef !important;
+  --dsw-alias-button-tool-bar-fill: rgba(24, 34, 70, 0.85) !important;
+  --dsw-alias-button-tool-bar-hover: rgba(38, 52, 100, 0.95) !important;
+  --dsw-alias-interactive-bg-hover: rgba(143, 163, 255, 0.12) !important;
+  --dsw-alias-interactive-bg-active: rgba(216, 184, 120, 0.22) !important;
+  --dsw-alias-interactive-bg-hover-solid: #26325e !important;
+  --dsw-alias-label-primary: #eef2ff !important;
+  --dsw-alias-label-primary-bluish: #dbe3fb !important;
+  --dsw-alias-label-secondary: #c3cdf0 !important;
+  --dsw-alias-label-tertiary: #93a1cf !important;
+  --dsw-alias-label-caption: #7e8cb8 !important;
+  --dsw-alias-markdown-code-block: rgba(8, 12, 30, 0.95) !important;
+  --dsw-alias-state-business-primary: #8fa3ff !important;
+  --dsw-alias-state-business-tertiary: #26356a !important;
+  --dsw-alias-state-warn-tertiary: rgba(216, 184, 120, 0.18) !important;
+  --dsw-alias-state-warn-label: #ecd09a !important;
+  --dsw-shadow-lv2: var(--qwen-shadow) !important;
+  --dsw-specific-bubble: rgba(24, 36, 76, 0.92) !important;
+  --dsw-specific-bubble-highlight: rgba(30, 45, 92, 0.95) !important;
+  --dsw-specific-input-major: rgba(13, 19, 44, 0.88) !important;
+  --dsw-specific-menu: rgba(9, 13, 32, 0.97) !important;
+  --dsw-specific-selector: rgba(30, 42, 86, 0.92) !important;
+  --dsw-specific-sidebar-fill: rgba(6, 10, 26, 0.8) !important;
+  --dsw-input-solid: #0d1330 !important;
+}
+
+/* ============================================================
+   2. Base surface
+   ============================================================ */
+
+body[data-dsh-qwen-blossom] {
+  color: var(--qwen-text);
+  background-color: var(--qwen-canvas);
+}
+
+/* [id='root'] — never #root: CSS Modules would hash an ID selector, and the
+   attribute form keeps the host's own rules addressable. Transparent root
+   lets the fixed backdrop layer (z-index -1) show through. */
+body[data-dsh-qwen-blossom] [id='root'] {
+  position: relative;
+  background: transparent;
+}
+
+body[data-dsh-qwen-blossom] a {
+  color: var(--qwen-link);
+}
+
+/* ============================================================
+   3. Background art layers (mounted by client/index.ts, cross-fade ~200ms)
+   ============================================================ */
+
+body[data-dsh-qwen-blossom] [data-skin-chrome='qwen-backdrop'] {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  contain: strict;
+  pointer-events: none;
+  transition: opacity 320ms ease;
+}
+
+body[data-dsh-qwen-blossom] [data-qwen-backdrop-layer] {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+body[data-dsh-qwen-blossom] [data-qwen-backdrop-layer='light'] {
+  background-image: var(--qwen-blossom-light-art);
+}
+
+body[data-dsh-qwen-blossom] [data-qwen-backdrop-layer='dark'] {
+  background-image: var(--qwen-blossom-dark-art);
+}
+
+body[data-dsh-qwen-blossom]:not([data-ds-dark-theme]) [data-qwen-backdrop-layer='light'] {
+  opacity: 1;
+}
+
+body[data-dsh-qwen-blossom][data-ds-dark-theme] [data-qwen-backdrop-layer='dark'] {
+  opacity: 1;
+}
+
+/* 会话活跃态：背景降透明度，让阅读区更安静（属性由客户端投影） */
+body[data-dsh-qwen-blossom][data-qwen-chat-active] [data-skin-chrome='qwen-backdrop'] {
+  opacity: 0.55;
+}
+
+/* ============================================================
+   4. Panes: sidebar / conversation / details
+   ============================================================ */
+
+/* 侧栏：宣纸衬底 + 顶部回纹分隔带。No backdrop-filter here: the settings
+   dialog mounts inside the sidebar tree and a filter would create a
+   stacking context that traps its fixed overlay. */
+body[data-dsh-qwen-blossom] :is([data-pane='sidebar'], [class*='sidebarCol']) {
+  border-right: 1px solid var(--qwen-line-inner-soft);
+  background-image:
+    var(--qwen-band-art),
+    linear-gradient(var(--qwen-sidebar-fill), var(--qwen-sidebar-fill));
+  background-repeat: repeat-x, no-repeat;
+  background-position: 0 0, 0 0;
+  background-size: auto 7px, auto;
+}
+
+/* 会话区：全透明让背景画透出；内容面（气泡/composer）自带衬底 */
+body[data-dsh-qwen-blossom] :is([data-pane='conversation'], [class*='centerCol']) {
+  position: relative;
+  background: transparent;
+}
+
+body[data-dsh-qwen-blossom] [class*='ConversationRoot'] {
+  background: transparent;
+}
+
+/* 顶部滚动渐隐带会盖出一块灰幕，交给透明 */
+body[data-dsh-qwen-blossom] :is([data-pane='sidebar'], [class*='sidebarCol']) [class*='fade'] {
+  background: none;
+}
+
+/* 会话区顶栏：半透明衬底 + 底边回纹分隔带 */
+body[data-dsh-qwen-blossom] :is([data-pane='conversation'], [class*='centerCol']) header[class*='header'] {
+  border-bottom: 0;
+  background-image:
+    var(--qwen-band-art),
+    linear-gradient(var(--qwen-surface), var(--qwen-surface));
+  background-repeat: repeat-x, no-repeat;
+  background-position: left bottom, 0 0;
+  background-size: auto 7px, auto;
+  color: var(--qwen-text);
+}
+
+body[data-dsh-qwen-blossom] :is([data-pane='details'], [class*='detailsCol']) {
+  background: var(--qwen-surface);
+  border-left: 1px solid var(--qwen-line-inner-soft);
+}
+
+/* 详情栏/工作台标题等小字号文本保持正文对比度 */
+body[data-dsh-qwen-blossom] [class*='sectionHeader'] {
+  color: var(--qwen-text-soft);
+}
+
+/* ============================================================
+   5. Readability: text, inputs, ghost text, bubbles
+   ============================================================ */
+
+/* 输入控件：显式 text-fill-color（rc 幽灵文本适配红线），靛蓝插入符 */
+body[data-dsh-qwen-blossom] :where(input, textarea, select) {
+  color: var(--qwen-text);
+  -webkit-text-fill-color: var(--qwen-text);
+  caret-color: var(--qwen-line-outer);
+}
+
+body[data-dsh-qwen-blossom] :where(input, textarea)::placeholder {
+  color: var(--qwen-text-faint);
+  -webkit-text-fill-color: var(--qwen-text-faint);
+  opacity: 1;
+}
+
+body[data-dsh-qwen-blossom] [data-composer-card] [data-composer-input] {
+  color: var(--qwen-text);
+  -webkit-text-fill-color: var(--qwen-text);
+}
+
+body[data-dsh-qwen-blossom][data-ds-dark-theme] [data-composer-card] [data-composer-input] {
+  caret-color: #bcd2ff;
+}
+
+/* 用户气泡：靛金双线框 */
+body[data-dsh-qwen-blossom] [class*='userRow'] [class*='bubble'] {
+  border: 1px solid var(--qwen-line-outer-soft);
+  background: var(--dsw-specific-bubble);
+  box-shadow: inset 0 0 0 1px var(--qwen-line-inner-soft), 0 6px 20px rgba(19, 38, 87, 0.1);
+}
+
+/* 助手正文卡：宣纸衬底保证长文可读 */
+body[data-dsh-qwen-blossom]
+  [data-chat-flow-kind='assistant-step'] > * > * > * > div[class*='markdown'] {
+  box-sizing: border-box;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: min(100%, calc(var(--dsh-chat-content-width, 680px) - 32px));
+  padding: 14px 18px;
+  border: 1px solid var(--qwen-line-outer-soft);
+  border-radius: 16px 16px 16px 6px;
+  background: var(--qwen-surface-strong);
+  box-shadow: inset 0 0 0 1px var(--qwen-line-inner-soft), 0 4px 14px rgba(19, 38, 87, 0.08);
+}
+
+/* Hero 大标题：在背景画上保持可读 */
+body[data-dsh-qwen-blossom] [class*='headline'] {
+  color: var(--qwen-text);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55), 0 4px 16px rgba(35, 48, 107, 0.14);
+}
+
+body[data-dsh-qwen-blossom][data-ds-dark-theme] [class*='headline'] {
+  color: #f4f0e2;
+  text-shadow: 0 2px 6px rgba(3, 7, 22, 0.85), 0 0 20px rgba(143, 163, 255, 0.22);
+}
+
+/* ============================================================
+   6. Composer card: 靛金双线框 + 回纹角花
+   ============================================================ */
+
+body[data-dsh-qwen-blossom] [data-composer-card] {
+  position: relative;
+  border: 1px solid var(--qwen-line-outer);
+  border-radius: 16px;
+  background: var(--qwen-composer-surface);
+  box-shadow: inset 0 0 0 1px var(--qwen-line-inner-soft), var(--qwen-shadow);
+  backdrop-filter: blur(6px) saturate(0.95);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+/* hover/focus 金描边 */
+body[data-dsh-qwen-blossom] [data-composer-card]:focus-within {
+  border-color: var(--qwen-line-inner);
+  box-shadow: inset 0 0 0 1px var(--qwen-line-inner-soft), 0 0 0 3px rgba(201, 168, 106, 0.16), var(--qwen-shadow);
+}
+
+/* 四角回纹角花（装饰层，不拦点击） */
+body[data-dsh-qwen-blossom] [data-composer-card]::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  z-index: 3;
+  pointer-events: none;
+  background-image:
+    var(--qwen-corner-a),
+    var(--qwen-corner-b),
+    var(--qwen-corner-b),
+    var(--qwen-corner-a);
+  background-position: left top, right top, left bottom, right bottom;
+  background-size: 24px 24px;
+  background-repeat: no-repeat;
+}
+
+/* 卡片内容抬到衬底之上（角花之下无冲突：内容在内圈） */
+body[data-dsh-qwen-blossom] [data-composer-card] > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* 模型菜单展开期间释放卡片 blur，避免菜单经滤镜层重绘发糊（maid 同款防御） */
+body[data-dsh-qwen-blossom] [data-composer-card]:has(
+    [data-slot='conversation.input.model']
+      [class$='_root']
+      > button[class$='_trigger'][aria-haspopup='menu'][aria-expanded='true']
+      + [role='menu'][class$='_menu']
+  ) {
+  backdrop-filter: none;
+}
+
+body[data-dsh-qwen-blossom] [data-composer-card] [role='menu'] {
+  background: var(--qwen-surface-overlay);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* 主按钮：靛蓝实底 + 金描边（文字对比度 ≥ 4.5:1） */
+body[data-dsh-qwen-blossom] [data-composer-card] button[class*='primary'] {
+  border: 1px solid var(--qwen-line-inner-soft);
+  color: #f8faff;
+  background: linear-gradient(145deg, #4a5daE, #2b3a8f);
+  box-shadow: 0 4px 12px rgba(26, 50, 108, 0.28);
+}
+
+body[data-dsh-qwen-blossom][data-ds-dark-theme] [data-composer-card] button[class*='primary'] {
+  border-color: rgba(216, 184, 120, 0.6);
+  color: #0a0e22;
+  background: linear-gradient(145deg, #a9baff, #7d92e8);
+}
+
+/* 输入坞统计条：轻衬底防背景干扰 */
+body[data-dsh-qwen-blossom] [data-slot='conversation.composer.dock'] > * {
+  color: var(--qwen-text-soft);
+  background: linear-gradient(90deg, transparent, var(--qwen-surface) 12% 88%, transparent);
+}
+
+/* ============================================================
+   7. Terminal card: 双线框 + 角花
+   ============================================================ */
+
+body[data-dsh-qwen-blossom] [data-terminal] {
+  border: 1px solid var(--qwen-line-outer-soft);
+  border-radius: 10px;
+  background-image:
+    var(--qwen-corner-a),
+    var(--qwen-corner-b),
+    var(--qwen-corner-b),
+    var(--qwen-corner-a),
+    linear-gradient(var(--dsw-alias-markdown-code-block), var(--dsw-alias-markdown-code-block));
+  background-position: left 2px top 2px, right 2px top 2px, left 2px bottom 2px, right 2px bottom 2px, 0 0;
+  background-size: 16px 16px, 16px 16px, 16px 16px, 16px 16px, auto;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 0 0 1px var(--qwen-line-inner-soft);
+  color: var(--qwen-text);
+  text-shadow: none;
+}
+
+/* ============================================================
+   8. Goal / Todo / Queue dock cards
+   ============================================================ */
+
+body[data-dsh-qwen-blossom] :is([data-testid='todo-panel'], [data-goal-bar] > div, [data-queue-dock] > div) {
+  --dsw-alias-label-primary: var(--qwen-text) !important;
+  --dsw-alias-label-secondary: var(--qwen-text-soft) !important;
+  --dsw-alias-label-tertiary: var(--qwen-text-faint) !important;
+  --dsw-alias-label-caption: var(--qwen-text-faint) !important;
+  border: 1px solid var(--qwen-line-outer-soft);
+  border-radius: 12px;
+  background: var(--qwen-surface-strong);
+  color: var(--qwen-text);
+  box-shadow: inset 0 0 0 1px var(--qwen-line-inner-soft), 0 8px 24px rgba(12, 27, 65, 0.16);
+}
+
+body[data-dsh-qwen-blossom] :is([data-goal-bar], [data-queue-dock]) {
+  --dsw-alias-label-primary-dimmed: var(--qwen-text-soft) !important;
+}
+
+/* ============================================================
+   9. Overlays: dialogs / menus / poppers
+   ============================================================ */
+
+/* 浮层统一宣纸/靛夜衬底 + 靛金双线框。z-index 由宿主契约管理
+   （menu 100 / modal 1000 / portal 1100），皮肤不抬升浮层。 */
+body[data-dsh-qwen-blossom] :is([role='dialog'], [role='menu'], [data-radix-popper-content-wrapper] > *) {
+  --dsw-alias-label-primary: var(--qwen-text) !important;
+  --dsw-alias-label-primary-bluish: var(--qwen-text) !important;
+  --dsw-alias-label-secondary: var(--qwen-text-soft) !important;
+  --dsw-alias-label-tertiary: var(--qwen-text-faint) !important;
+  --dsw-alias-label-caption: var(--qwen-text-faint) !important;
+  --dsw-alias-border-l1: var(--qwen-line-outer-soft) !important;
+  --dsw-alias-border-l2: var(--qwen-line-outer-soft) !important;
+  --dsw-specific-input-major: var(--qwen-surface-strong) !important;
+  border-color: var(--qwen-line-outer-soft);
+  color: var(--qwen-text);
+  background-color: var(--qwen-surface-overlay);
+  box-shadow: inset 0 0 0 1px var(--qwen-line-inner-soft), var(--qwen-shadow);
+}
+
+/* 对话框（含设置面板）：四角回纹角花走同一元素的 background-image 合成 */
+body[data-dsh-qwen-blossom] [role='dialog'][aria-modal='true'] {
+  background-image:
+    var(--qwen-corner-a),
+    var(--qwen-corner-b),
+    var(--qwen-corner-b),
+    var(--qwen-corner-a);
+  background-position: left 3px top 3px, right 3px top 3px, left 3px bottom 3px, right 3px bottom 3px;
+  background-size: 22px 22px;
+  background-repeat: no-repeat;
+}
+
+/* 设置弹窗挂在侧栏树内：弹窗打开期间释放侧栏内容根的层叠上下文，
+   否则 fixed 面板被困住（WebKit 不绘制 / Blink 被会话顶栏压住）。
+   scoped :has（非 body 级），随弹窗卸载自动还原。 */
+body[data-dsh-qwen-blossom]
+  :is([data-pane='sidebar'], [class*='sidebarCol'])
+  > div
+  > :has([role='dialog'][aria-modal='true']) {
+  z-index: auto !important;
+}
+
+/* 悬浮 tooltip 保持宿主样式，仅确保文字对比 */
+body[data-dsh-qwen-blossom] [role='tooltip'] {
+  color: var(--qwen-text);
+}
+
+/* ============================================================
+   10. Buttons & focus: 金描边反馈
+   ============================================================ */
+
+body[data-dsh-qwen-blossom] :where(button, [role='tab'], a):focus-visible {
+  outline: 1px solid var(--qwen-line-inner);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* 顶栏 tab 选中态：鎏金下划线 */
+body[data-dsh-qwen-blossom] header[class*='header'] button[role='tab'][aria-selected='true']::after {
+  background: var(--qwen-line-inner);
+}
+
+/* ============================================================
+   11. Motion preferences
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-dsh-qwen-blossom] [data-skin-chrome='qwen-backdrop'],
+  body[data-dsh-qwen-blossom] [data-qwen-backdrop-layer] {
+    transition: none;
+  }
+}
